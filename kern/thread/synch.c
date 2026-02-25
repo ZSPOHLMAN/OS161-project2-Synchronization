@@ -161,8 +161,20 @@ void
 lock_release(struct lock *lock)
 {
 	// Write this
+	assert(lock != NULL);
+	
+	int spl = splhigh();
 
-	(void)lock;  // suppress warning until code gets written
+	lock->holder = NULL;
+
+	if(!q_empty(lock->gimme_the_lock)){
+		struct thread *next = q_remhead(lock->gimme_the_lock);
+
+	}
+		
+	thread_wakeup(lock);
+	splx(spl);
+	  // suppress warning until code gets written
 }
 
 int
