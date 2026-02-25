@@ -204,6 +204,7 @@ cv_create(const char *name)
 		return NULL;
 	}
 	
+	cv->im_waiting = q_create(4);
 	// add stuff here as needed
 	
 	return cv;
@@ -215,7 +216,8 @@ cv_destroy(struct cv *cv)
 	assert(cv != NULL);
 
 	// add stuff here as needed
-	
+	assert(q_empty(cv->im_waiting) == 0);
+	q_destroy(cv->im_waiting);	
 	kfree(cv->name);
 	kfree(cv);
 }
@@ -223,23 +225,36 @@ cv_destroy(struct cv *cv)
 void
 cv_wait(struct cv *cv, struct lock *lock)
 {
-	// Write this
-	(void)cv;    // suppress warning until code gets written
-	(void)lock;  // suppress warning until code gets written
+
+	int spl = splhigh();
+	lock_release(lock);
+	q_addtail(cv->im_waiting,curthread);//add to queue
+	thread_sleep(cv);// wake up because i got 1) signaled and im first in the queue or
+			// 2) broadcast	
+			//those are the ONLY functions that will call that so there should be no loose threads that escape(?)
+
+	splx(spl);//interrupts back on so that the thread can wait for the lock
+	lock_acquire(lock);		
 }
 
 void
 cv_signal(struct cv *cv, struct lock *lock)
 {
-	// Write this
-	(void)cv;    // suppress warning until code gets written
-	(void)lock;  // suppress warning until code gets written
+	assert(lock_do_i_hold(lock));
+	int spl = splhigh();	
+	q_remhead(cv->im_waiting);
+	thread_wakeone(cv);
+	splx(spl);
 }
 
 void
 cv_broadcast(struct cv *cv, struct lock *lock)
 {
-	// Write this
-	(void)cv;    // suppress warning until code gets written
-	(void)lock;  // suppress warning until code gets written
+	assert(lock_do_i_hold(lock));
+	int spl = splhigh();
+	while(q_empty(cv->im_waiting) == 0){//remove everything from the queue
+		q_remhead(cv->im_waiting);
+	}
+	thread_wakeup(cv);
+	splx(spl);	
 }

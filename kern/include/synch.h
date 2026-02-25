@@ -91,6 +91,8 @@ void         lock_destroy(struct lock *);
 
 struct cv {
 	char *name;
+	//struct lock *lock;//nvm it doesnt need to know what the lock's status is i think
+	struct queue *im_waiting; //queue of things which are waiting for it
 	// add what you need here
 	// (don't forget to mark things volatile as needed)
 };
