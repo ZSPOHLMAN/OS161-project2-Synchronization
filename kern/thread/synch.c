@@ -9,7 +9,7 @@
 #include <thread.h>
 #include <curthread.h>
 #include <machine/spl.h>
-
+#include <queue.h>
 ////////////////////////////////////////////////////////////
 //
 // Semaphore.
@@ -113,7 +113,7 @@ lock_create(const char *name)
 	}
 	
 
-	lock->gimme_the_lock = queue(4);
+	lock->gimme_the_lock = q_create(4);
 	if(lock->gimme_the_lock = NULL){	
 		kfree(lock->name);
 		kfree(lock);
@@ -129,12 +129,11 @@ void
 lock_destroy(struct lock *lock)
 {
 	assert(lock != NULL);
-	assert(lock->holder = NULL)
+	assert(lock->holder == NULL)
 	// add stuff here as needed
 	
-	kfree(lock->holder);
+	q_destroy(lock->gimme_the_lock);
 	kfree(lock->name);
-	kfree(lock->gimme_the_lock);
 	kfree(lock);
 }
 
@@ -144,10 +143,10 @@ lock_acquire(struct lock *lock)
 	assert(lock != NULL);
 	assert(in_interrupt == 0)
 	
-	int spl = splhigh()	
+	int spl = splhigh();	
 
 
-	if(lock->holder != NULL){
+	while(lock->holder != NULL){
 		q_addtail(lock->gimme_the_lock, curthread);
 		thread_sleep(lock);
 	}
@@ -167,10 +166,6 @@ lock_release(struct lock *lock)
 
 	lock->holder = NULL;
 
-	if(!q_empty(lock->gimme_the_lock)){
-		struct thread *next = q_remhead(lock->gimme_the_lock);
-
-	}
 		
 	thread_wakeup(lock);
 	splx(spl);
@@ -181,10 +176,10 @@ int
 lock_do_i_hold(struct lock *lock)
 {
 	if(lock->holder == curthread){
-		return 1
+		return 1;
 	}
 	else{
-		return 0
+		return 0;
 	}
 }
 

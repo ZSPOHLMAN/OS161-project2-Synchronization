@@ -278,7 +278,7 @@ hardclock.o: ../../thread/hardclock.c ../../include/types.h \
 synch.o: ../../thread/synch.c ../../include/types.h machine/types.h \
   ../../include/kern/types.h ../../include/lib.h machine/setjmp.h \
   ../../include/synch.h ../../include/thread.h machine/pcb.h \
-  ../../include/curthread.h machine/spl.h
+  ../../include/curthread.h machine/spl.h ../../include/queue.h
 scheduler.o: ../../thread/scheduler.c ../../include/types.h \
   machine/types.h ../../include/kern/types.h ../../include/lib.h \
   machine/setjmp.h ../../include/scheduler.h ../../include/thread.h \
