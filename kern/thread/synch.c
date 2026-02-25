@@ -114,7 +114,7 @@ lock_create(const char *name)
 	
 
 	lock->gimme_the_lock = q_create(4);
-	if(lock->gimme_the_lock = NULL){	
+	if(lock->gimme_the_lock == NULL){	
 		kfree(lock->name);
 		kfree(lock);
 		return NULL;
